@@ -64,22 +64,23 @@ Strophe.addConnectionPlugin("rebind", {
             return;
         }
         var shandler = this._conn._addSysHandler((function(elem) {
-            this._conn.deleteHandler(shandler);
             this._conn.deleteHandler(fhandler);
 
-            this._conn._changeConnectStatus(Strophe.Status.ATTACHED, null);
             this.sid = this._sid;
             this.active = true;
+            this._conn.authenticated = true;
+            this._conn._changeConnectStatus(Strophe.Status.ATTACHED, null);
+            return false;
         }).bind(this), null, "rebind", null, null);
 
         var fhandler = this._conn._addSysHandler((function(elem) {
             this._conn.deleteHandler(shandler);
-            this._conn.deleteHandler(fhandler);
 
             if (this._onlyRebind)
                 this._conn._changeConnectStatus(Strophe.Status.CONNFAIL, "Rebind failure");
             else
                 Strophe.prototype.authenticate.call(this._conn, mechanisms);
+            return false;
         }).bind(this), null, "failure", null, null);
 
         this._conn.send($build('rebind', {
