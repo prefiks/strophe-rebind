@@ -60,7 +60,7 @@ Strophe.addConnectionPlugin("rebind", {
             if (this._onlyRebind)
                 this._conn._changeConnectStatus(Strophe.Status.CONNFAIL, "Rebind not available");
             else
-                Strophe.prototype.authenticate.call(this._conn, mechanisms);
+                this._origAuthenticate.call(this._conn, mechanisms);
             return;
         }
         var shandler = this._conn._addSysHandler((function(elem) {
@@ -79,7 +79,7 @@ Strophe.addConnectionPlugin("rebind", {
             if (this._onlyRebind)
                 this._conn._changeConnectStatus(Strophe.Status.CONNFAIL, "Rebind failure");
             else
-                Strophe.prototype.authenticate.call(this._conn, mechanisms);
+                this._origAuthenticate.call(this._conn, mechanisms);
             return false;
         }).bind(this), null, "failure", null, null);
 
@@ -94,7 +94,10 @@ Strophe.addConnectionPlugin("rebind", {
         this._sid = sid;
         this._onlyRebind = onlyRebind;
         if (sid) {
-            this._conn.authenticate = this._authenticate.bind(this);
+            if (!this._origAuthenticate) {
+                this._origAuthenticate = this._conn.authenticate;
+                this._conn.authenticate = this._authenticate.bind(this);
+            }
         } else if (onlyRebind) {
             this._conn._changeConnectStatus(Strophe.Status.CONNFAIL, "Rebind not active");
             return;
